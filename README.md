@@ -103,6 +103,7 @@ Tests cover page/assets, prediction feature order, malformed measurements, unava
 
 - Added the previously missing application, dependency manifest, and container deployment setup.
 - Added responsive, labeled inputs, keyboard focus states, visible units, loading/error states, and an accessible result announcement.
+- Added one-click sample presets below the form (near-median, low-solids, high-chloramines) so visitors can try an assessment without typing nine values.
 - Fixed full-dataset imputation leakage in the new training path and made the split stratified and reproducible.
 - Added strict server validation, request limits, security headers, and production serving.
 - The original notebook still contains historical code with global imputation, duplicate splits, unscaled distance-based classifiers, suppressed warnings, and deprecated plotting APIs. Use `train.py` for the deployable model rather than exporting the notebook's classifier.
