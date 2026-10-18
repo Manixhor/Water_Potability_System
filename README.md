@@ -52,6 +52,8 @@ npx wrangler deploy                  # first run prompts for Cloudflare login
 
 The build renders the same Jinja template the Flask app uses and exports the fitted pipeline (imputer medians + 500 trees) to a compact `AQF1` binary (`dist/static/water.forest`, ~12 MB). The browser maps typed arrays directly over the downloaded buffer, so loading is instant and each prediction is a synchronous tree walk — no WASM, workers, or runtime dependencies (an ONNX Runtime Web prototype was discarded because model parsing blocked the main thread long enough for browsers to kill the tab). The build refuses to run unless the export predicts identically to the installed scikit-learn model on every dataset row (verified: 100%, with 52/52 spot checks also passing in a real browser against the Flask API). The browser front-end (`static/app.browser.js`, served as `/static/app.js`) mirrors the Flask UI's validation and result strings; `/health` is served by `cloudflare/worker.js` and security headers live in `cloudflare/_headers`. The Flask server remains the reference implementation and is unchanged.
 
+**Live deployment:** https://waterpotabilitysystem.promptcraft-worker.workers.dev (`/health` reports `"model_ready": true`).
+
 ### Docker
 
 ```sh
@@ -104,6 +106,6 @@ Tests cover page/assets, prediction feature order, malformed measurements, unava
 - Fixed full-dataset imputation leakage in the new training path and made the split stratified and reproducible.
 - Added strict server validation, request limits, security headers, and production serving.
 - The original notebook still contains historical code with global imputation, duplicate splits, unscaled distance-based classifiers, suppressed warnings, and deprecated plotting APIs. Use `train.py` for the deployable model rather than exporting the notebook's classifier.
-- Dataset provenance, independent validation, model calibration, and deployment on a hosting account remain release-owner tasks. No live deployment has been performed.
+- Dataset provenance, independent validation, and model calibration remain release-owner tasks. The application is deployed for free on Cloudflare Workers (always on, no Docker) at https://waterpotabilitysystem.promptcraft-worker.workers.dev, verified via `/health`, production header checks, and browser parity tests against the Flask API.
 
 This project is for research and education. A prediction cannot certify drinking-water safety; use accredited laboratory testing and qualified guidance for real-world decisions.
