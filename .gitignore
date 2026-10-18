@@ -4,4 +4,7 @@ __pycache__/
 .env
 .env.*
 data/*.csv
+dist/
 .DS_Store
+node_modules/
+.wrangler/

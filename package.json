@@ -1,0 +1,22 @@
+{
+  "name": "water-potability-system",
+  "version": "1.0.0",
+  "description": "Aqua · Water quality research workspace — Flask API, scikit-learn training pipeline, and free Cloudflare Workers static deployment.",
+  "private": true,
+  "scripts": {
+    "build:cloudflare": "python scripts/build_cloudflare.py",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Manixhor/Water_Potability_System.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Manixhor/Water_Potability_System/issues"
+  },
+  "homepage": "https://github.com/Manixhor/Water_Potability_System#readme",
+  "devDependencies": {
+    "wrangler": "^4.151.1"
+  }
+}

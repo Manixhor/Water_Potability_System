@@ -1,0 +1,12 @@
+{
+	// Cloudflare Workers deployment (free tier): static site + /health endpoint.
+	// Build first: .venv/bin/python scripts/build_cloudflare.py
+	// Deploy: npx wrangler deploy
+	"name": "waterpotabilitysystem",
+	"main": "cloudflare/worker.js",
+	"compatibility_date": "2026-10-18",
+	"assets": {
+		"directory": "./dist",
+		"run_worker_first": ["/health"]
+	}
+}
