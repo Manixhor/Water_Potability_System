@@ -39,6 +39,23 @@ Training writes `models/water.joblib` and `models/water.metrics.json`. The pipel
 
 The included model's verified holdout metrics are recorded in `models/water.metrics.json`: accuracy 65.9%, balanced accuracy 59.1%, majority-class baseline 61.0%. The original notebook reports approximately 66% accuracy as a historical figure. No improved performance is claimed; review the confusion matrix before relying on the model, especially for the potable class.
 
+### Why accuracy plateaus near 66%
+
+The nine measurements carry little signal. In a 5-fold cross-validated sweep of 16 random-forest configurations every result landed between 65.8% and 67.7%, and a model that always answers "not potable" already scores 61.0%. The shipped 65.9% is therefore close to what this dataset supports, not a sign that the pipeline needs more tuning or a different classifier. No accuracy above 68% is claimed or achievable here without letting information cross the train/test boundary.
+
+Results far above that range are almost always produced by rows appearing on both sides of the split. `scratch/leaky_accuracy.py` (on the `demo/leaky-accuracy` branch — a teaching demo, not deployed and not part of the app) reproduces the ladder on the same forest, changing only the order of the preprocessing steps:
+
+| Pipeline | Accuracy |
+| --- | --- |
+| Honest: split first, impute from the training rows only | 65.9% |
+| Impute medians from the whole dataset, then split | 65.5% |
+| Balance the classes before the split | 76.5% |
+| Duplicate every row once, then split | 88.6% |
+| Duplicate every row twice, then split | 97.2% |
+| No holdout at all — score on the training rows | 100.0% |
+
+Only the first row measures generalisation; the rest measure memorisation. A held-out score means something only when the held-out rows were never touched — including by imputers, scalers, and resamplers.
+
 ## Deployment
 
 ### Cloudflare Workers (free, no Docker)
@@ -104,7 +121,7 @@ Tests cover page/assets, prediction feature order, malformed measurements, unava
 - Added the previously missing application, dependency manifest, and container deployment setup.
 - Added responsive, labeled inputs, keyboard focus states, visible units, loading/error states, and an accessible result announcement.
 - Added one-click sample presets below the form (balanced, low-solids, higher-mineral) that the served model classifies as potable, each with a **Drinkable** verdict badge and a table listing all nine measurements with units. **Load example** loads the same balanced sample, so every built-in starting point predicts drinking water. Badge labels are checked against the model at build time (the build fails on any mismatch), clicking a preset scrolls the result into view, and the research disclaimer is unchanged.
-- Fixed full-dataset imputation leakage in the new training path and made the split stratified and reproducible.
+- Fixed full-dataset imputation leakage in the new training path and made the split stratified and reproducible. The README now documents the honest accuracy ceiling (65.8-67.7% across 16 forest configurations under 5-fold cross-validation, against a 61.0% majority baseline) and the `demo/leaky-accuracy` branch shows how identical preprocessing mistakes inflate the same forest to 88.6%.
 - Added strict server validation, request limits, security headers, and production serving.
 - The original notebook still contains historical code with global imputation, duplicate splits, unscaled distance-based classifiers, suppressed warnings, and deprecated plotting APIs. Use `train.py` for the deployable model rather than exporting the notebook's classifier.
 - Dataset provenance, independent validation, and model calibration remain release-owner tasks. The application is deployed for free on Cloudflare Workers (always on, no Docker) at https://waterpotabilitysystem.promptcraft-worker.workers.dev, verified via `/health`, production header checks, and browser parity tests against the Flask API.
