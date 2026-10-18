@@ -20,6 +20,10 @@ class ApiTests(unittest.TestCase):
         self.assertIn(b'Know your water', response.data)
         self.assertIn(b'data-sample', response.data)
         self.assertIn(b'SAMPLE VALUES', response.data)
+        self.assertIn(b'Not drinkable', response.data)
+        self.assertIn(b'class="verdict ok"', response.data)
+        self.assertIn(b'class="sample-values"', response.data)
+        self.assertIn(b'22000.00', response.data)
         for asset in ('style.css', 'app.js'):
             with self.client.get('/static/' + asset) as asset_response:
                 self.assertEqual(asset_response.status_code, 200)
@@ -30,6 +34,7 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(SAMPLES)
         for sample in SAMPLES:
             self.assertTrue(sample['name'] and sample['note'])
+            self.assertIsInstance(sample['drinkable'], bool)
             self.assertEqual(set(sample['measurements']), set(FEATURES))
             for key, (_, _, low, high, _) in FEATURES.items():
                 self.assertLessEqual(low, sample['measurements'][key])

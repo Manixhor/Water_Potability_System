@@ -17,6 +17,7 @@ SAMPLES = (
     {
         'name': 'Near-median sample',
         'note': 'Typical dataset values across all nine fields.',
+        'drinkable': False,
         'measurements': {
             'ph': 7.1,
             'Hardness': 196,
@@ -32,6 +33,7 @@ SAMPLES = (
     {
         'name': 'Low-solids sample',
         'note': 'Dissolved solids far below the dataset median.',
+        'drinkable': True,
         'measurements': {
             'ph': 6.19,
             'Hardness': 236.03,
@@ -47,6 +49,7 @@ SAMPLES = (
     {
         'name': 'High-chloramines sample',
         'note': 'Elevated chloramines with higher dissolved solids.',
+        'drinkable': False,
         'measurements': {
             'ph': 6.14,
             'Hardness': 175.27,

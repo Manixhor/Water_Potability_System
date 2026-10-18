@@ -87,6 +87,8 @@ document.querySelectorAll('.sample').forEach(sample => {
     form.querySelectorAll('input').forEach(input => { if (input.id in values) input.value = values[input.id]; });
     if (typeof form.requestSubmit === 'function') form.requestSubmit();
     else form.dispatchEvent(new Event('submit', { cancelable: true }));
+    const result = document.querySelector('.result');
+    if (result) result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 });
 form.addEventListener('reset', () => {

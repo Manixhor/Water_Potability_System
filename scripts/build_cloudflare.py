@@ -125,7 +125,7 @@ def main():
     import pandas as pd
 
     from app import create_app
-    from features import FEATURES
+    from features import FEATURES, SAMPLES
 
     model_path = ROOT / 'models' / 'water.joblib'
     if not model_path.is_file():
@@ -154,6 +154,17 @@ def main():
         agreement = float((expected == predicted).mean())
         if agreement < 0.999:
             sys.exit(f'Forest export parity {agreement:.4f} below 0.999 — refusing to build.')
+
+    # 2b. Preset badges must carry the served model's own verdict, so the UI's
+    # "Drinkable" / "Not drinkable" labels cannot drift from the predictions.
+    for sample in SAMPLES:
+        ordered = {key: sample['measurements'][key] for key in FEATURES}
+        predicted = int(model.predict(pd.DataFrame([ordered]))[0])
+        if predicted != int(bool(sample['drinkable'])):
+            sys.exit(
+                f"Sample '{sample['name']}' is labelled drinkable={sample['drinkable']} "
+                f'but the model predicts {predicted} — refusing to build.'
+            )
 
     # 3. Front-end assets: browser runtime served as /static/app.js.
     shutil.copy(ROOT / 'static' / 'style.css', DIST / 'static' / 'style.css')
