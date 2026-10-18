@@ -20,10 +20,10 @@ class ApiTests(unittest.TestCase):
         self.assertIn(b'Know your water', response.data)
         self.assertIn(b'data-sample', response.data)
         self.assertIn(b'SAMPLE VALUES', response.data)
-        self.assertIn(b'Not drinkable', response.data)
+        self.assertIn(b'Drinkable', response.data)
         self.assertIn(b'class="verdict ok"', response.data)
         self.assertIn(b'class="sample-values"', response.data)
-        self.assertIn(b'22000.00', response.data)
+        self.assertIn(b'16828.9', response.data)
         for asset in ('style.css', 'app.js'):
             with self.client.get('/static/' + asset) as asset_response:
                 self.assertEqual(asset_response.status_code, 200)
@@ -39,6 +39,12 @@ class ApiTests(unittest.TestCase):
             for key, (_, _, low, high, _) in FEATURES.items():
                 self.assertLessEqual(low, sample['measurements'][key])
                 self.assertLessEqual(sample['measurements'][key], high)
+
+    def test_loaded_examples_are_a_drinkable_sample(self):
+        from features import SAMPLES
+        examples = {key: value[4] for key, value in FEATURES.items()}
+        self.assertIn(examples, [sample['measurements'] for sample in SAMPLES])
+        self.assertTrue(all(sample['drinkable'] for sample in SAMPLES))
 
     def test_prediction_and_order(self):
         response = self.client.post('/api/predict', json=self.sample)

@@ -1,33 +1,40 @@
-"""Shared feature contract. Bounds validate inputs, not drinking-water safety."""
+"""Water quality feature contract and interface sample presets.
+
+The per-feature example is also the "Load example" value, and the bounds are
+application input limits. Neither is a drinking-water safety standard.
+"""
 FEATURES = {
-    'ph': ('pH', 'pH units', 0, 14, 7.1),
-    'Hardness': ('Hardness', 'mg/L', 0, 1000, 196),
-    'Solids': ('Dissolved solids', 'ppm', 0, 100000, 22000),
+    'ph': ('pH', 'pH units', 0, 14, 6.7),
+    'Hardness': ('Hardness', 'mg/L', 0, 1000, 182.4),
+    'Solids': ('Dissolved solids', 'ppm', 0, 100000, 16828.9),
     'Chloramines': ('Chloramines', 'ppm', 0, 50, 7.1),
-    'Sulfate': ('Sulfate', 'mg/L', 0, 2000, 333),
-    'Conductivity': ('Conductivity', 'µS/cm', 0, 5000, 426),
-    'Organic_carbon': ('Organic carbon', 'mg/L', 0, 100, 14.3),
-    'Trihalomethanes': ('Trihalomethanes', 'µg/L', 0, 1000, 66),
-    'Turbidity': ('Turbidity', 'NTU', 0, 100, 4),
+    'Sulfate': ('Sulfate', 'mg/L', 0, 2000, 355.9),
+    'Conductivity': ('Conductivity', 'µS/cm', 0, 5000, 434.7),
+    'Organic_carbon': ('Organic carbon', 'mg/L', 0, 100, 16.6),
+    'Trihalomethanes': ('Trihalomethanes', 'µg/L', 0, 1000, 69.4),
+    'Turbidity': ('Turbidity', 'NTU', 0, 100, 4.0),
 }
 
-# Preset samples for the interface: rounded dataset rows, shown as quick-start
-# buttons below the form. Illustrative measurements, not verified samples.
+# Preset samples for the interface: rounded dataset rows that the served model
+# classifies as potable, shown as quick-start buttons below the form. Values are
+# illustrative measurements, not verified laboratory samples, and the verdict is
+# a model prediction rather than a safety certification. scripts/build_cloudflare.py
+# refuses to build if a sample's drinkable flag disagrees with the model.
 SAMPLES = (
     {
-        'name': 'Near-median sample',
-        'note': 'Typical dataset values across all nine fields.',
-        'drinkable': False,
+        'name': 'Balanced sample',
+        'note': 'Close to the dataset medians across all nine fields.',
+        'drinkable': True,
         'measurements': {
-            'ph': 7.1,
-            'Hardness': 196,
-            'Solids': 22000,
+            'ph': 6.7,
+            'Hardness': 182.4,
+            'Solids': 16828.9,
             'Chloramines': 7.1,
-            'Sulfate': 333,
-            'Conductivity': 426,
-            'Organic_carbon': 14.3,
-            'Trihalomethanes': 66,
-            'Turbidity': 4,
+            'Sulfate': 355.9,
+            'Conductivity': 434.7,
+            'Organic_carbon': 16.6,
+            'Trihalomethanes': 69.4,
+            'Turbidity': 4.0,
         },
     },
     {
@@ -35,31 +42,31 @@ SAMPLES = (
         'note': 'Dissolved solids far below the dataset median.',
         'drinkable': True,
         'measurements': {
-            'ph': 6.19,
-            'Hardness': 236.03,
-            'Solids': 1198.94,
-            'Chloramines': 6.14,
+            'ph': 6.2,
+            'Hardness': 236.0,
+            'Solids': 1198.9,
+            'Chloramines': 6.1,
             'Sulfate': 374.1,
-            'Conductivity': 436.24,
-            'Organic_carbon': 11.09,
-            'Trihalomethanes': 99.78,
-            'Turbidity': 4.09,
+            'Conductivity': 436.2,
+            'Organic_carbon': 11.1,
+            'Trihalomethanes': 99.8,
+            'Turbidity': 4.1,
         },
     },
     {
-        'name': 'High-chloramines sample',
-        'note': 'Elevated chloramines with higher dissolved solids.',
-        'drinkable': False,
+        'name': 'Higher-mineral sample',
+        'note': 'Harder water with higher dissolved solids.',
+        'drinkable': True,
         'measurements': {
-            'ph': 6.14,
-            'Hardness': 175.27,
-            'Solids': 29072.17,
-            'Chloramines': 12.06,
-            'Sulfate': 287.7,
-            'Conductivity': 469.98,
-            'Organic_carbon': 13.14,
-            'Trihalomethanes': 83.28,
-            'Turbidity': 3.48,
+            'ph': 6.8,
+            'Hardness': 306.6,
+            'Solids': 28508.2,
+            'Chloramines': 6.8,
+            'Sulfate': 293.1,
+            'Conductivity': 306.1,
+            'Organic_carbon': 9.0,
+            'Trihalomethanes': 60.9,
+            'Turbidity': 2.5,
         },
     },
 )
