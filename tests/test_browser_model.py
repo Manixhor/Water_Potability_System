@@ -14,6 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class BrowserModelTests(unittest.TestCase):
+    def test_assessment_controller_regressions(self):
+        node = shutil.which('node')
+        if not node:
+            self.skipTest('Node.js is needed for the UI controller regression checks.')
+        subprocess.run([node, 'tests/frontend.cjs'], cwd=ROOT, check=True, capture_output=True)
+
     def test_javascript_predictions_match_sklearn(self):
         node = shutil.which('node')
         if not node:

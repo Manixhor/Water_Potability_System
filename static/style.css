@@ -43,3 +43,17 @@ input{min-height:46px;font-size:16px}
 @media(max-width:600px){header{padding:0 5%}main{padding:0 5%}.intro{grid-template-columns:minmax(0,1fr);padding-top:32px}.lede{font-size:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding:0}.stats>div{padding:18px 12px;border-left:0}.stats>div:first-child{padding:18px 12px}.stats>div:nth-child(even){border-left:1px solid var(--line)}.stats>div:nth-child(n+3){border-top:1px solid var(--line)}.stats strong{font-size:19px}.stats span{font-size:11px}.panel{padding:20px}.fields{gap:20px 14px}label{font-size:12px}.field small{font-size:10px}.text-button{font-size:12px}.sample-grid{grid-template-columns:1fr}.sample{padding:16px}.sample strong{font-size:13px}.sample small{font-size:12px}.verdict{font-size:10px}.panel-head{flex-wrap:wrap;gap:6px}.panel-head .text-button{padding:10px 0}.result h2{font-size:28px}.note p,details p{font-size:12px}footer{line-height:1.6}}
 @media(max-width:360px){.fields{grid-template-columns:minmax(0,1fr)}.form-footer{flex-direction:column-reverse;gap:8px}.primary{width:100%}h1{font-size:40px}.panel{padding:16px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Keep assessment feedback beside the action that produces it. */
+.result { margin-top: 26px; min-height: 280px; scroll-margin-top: 20px; }
+.result-icon { margin: 12px 0; font-size: 38px; }
+.result [tabindex="-1"]:focus { outline: none; }
+.result[data-state="complete"] { border-color: #197563; }
+.result[data-state="error"] { background: #fff3e9; border-color: #cf9768; }
+.result #retry { display: block; margin-top: 14px; }
+.result #retry[hidden] { display: none; }
+aside .samples { margin: 0; padding: 24px; }
+aside .sample-grid { grid-template-columns: minmax(0, 1fr); }
+aside .sample-values { font-size: 11px; }
+@media(max-width:900px) { aside { display: block; } .result { min-height: 260px; } }
+@media(max-width:600px) { .result { padding: 20px; } aside .samples { padding: 20px; } }

@@ -6,9 +6,13 @@ let forestPromise = null;
 function loadForest() {
   if (!forestPromise) {
     forestPromise = (async () => {
-      const response = await fetch('/static/water.forest', { signal: AbortSignal.timeout(30000) });
-      if (!response.ok) throw new Error('Model asset unavailable (' + response.status + ')');
-      return parseForest(await response.arrayBuffer());
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30000);
+      try {
+        const response = await fetch('/static/water.forest', { signal: controller.signal });
+        if (!response.ok) throw new Error('The model could not load. Check your connection and retry the assessment.');
+        return parseForest(await response.arrayBuffer());
+      } finally { clearTimeout(timer); }
     })().catch(error => { forestPromise = null; throw error; });
   }
   return forestPromise;

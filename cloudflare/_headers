@@ -7,6 +7,8 @@
   Cache-Control: no-store
 /static/app.js
   Cache-Control: no-store
+/static/forest.js
+  Cache-Control: no-store
 /static/style.css
   Cache-Control: public, max-age=3600
 /static/water.forest

@@ -141,3 +141,6 @@ Build before testing the browser model:
 ```
 
 The model test runs the actual JavaScript predictor against every dataset row and compares it with scikit-learn (requires Node.js). Optional UI checks use Playwright: start Flask on port 8086, then run `node tests/browser.cjs` with Playwright available. `WATER_TEST_URL` and `PLAYWRIGHT_EXECUTABLE_PATH` can override the server and browser paths. The checks cover both Flask and static assets, five viewport widths, required fields, range validation, all presets, reset during an active request, and model-download retry.
+
+
+Assessment feedback now appears directly below the form. Both manual assessments and presets focus and reveal the result, with visible loading and retry states. Presets support browsers without `requestSubmit`, and model downloads use an AbortController timeout compatible with browsers lacking `AbortSignal.timeout`. Deployed asset URLs include content versions to keep the interface and model in sync. Controller regression checks cover visible feedback, legacy preset submission, retry recovery, and stale results after resetting.

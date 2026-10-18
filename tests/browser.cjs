@@ -33,12 +33,13 @@ const base = process.env.WATER_TEST_URL || 'http://127.0.0.1:8086';
     }
     await page.setViewportSize({ width: 375, height: 812 });
     await page.locator('#analyze').click();
-    assert.equal(await page.locator('#result-tag').innerText(), 'AWAITING SAMPLE');
+    assert.equal(await page.locator('#result-tag').innerText(), 'CHECK INPUTS');
     await page.locator('#example').click();
     assert.equal(await page.locator('#ph').inputValue(), '6.7');
     await page.locator('#analyze').click();
     await page.locator('#result-tag').filter({ hasText: 'RESEARCH PREDICTION' }).waitFor();
     assert.equal(await page.locator('#result-title').innerText(), 'Predicted potable');
+    assert(await page.locator('#result-title').evaluate(el => { const r=el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }), 'Assessment heading must be visible after submitting');
     assert.equal(await page.locator('#model-status').innerText(), 'Model ready');
     if (mode === 'static') assert.equal(forestRequests, 2, 'failed model downloads must be retryable');
     for (const sample of await page.locator('.sample').all()) {
@@ -48,7 +49,7 @@ const base = process.env.WATER_TEST_URL || 'http://127.0.0.1:8086';
     }
     await page.locator('#ph').fill('15');
     await page.locator('#analyze').click();
-    assert.equal(await page.locator('#result-tag').innerText(), 'AWAITING ASSESSMENT');
+    assert.equal(await page.locator('#result-tag').innerText(), 'CHECK INPUTS');
     await page.locator('button[type=reset]').click();
     assert.equal(await page.locator('#ph').inputValue(), '');
     assert.equal(await page.locator('#result-tag').innerText(), 'AWAITING SAMPLE');

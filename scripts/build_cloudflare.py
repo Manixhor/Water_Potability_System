@@ -5,6 +5,7 @@ Renders the Flask UI, exports the trained pipeline to a compact binary forest
 identically to the served scikit-learn model. Requires only requirements.txt.
 """
 import shutil
+import hashlib
 import struct
 import sys
 from pathlib import Path
@@ -174,7 +175,16 @@ def main():
     # 3. Front-end assets: browser runtime served as /static/app.js.
     shutil.copy(ROOT / 'static' / 'style.css', DIST / 'static' / 'style.css')
     shutil.copy(ROOT / 'static' / 'app.js', DIST / 'static' / 'app.js')
-    shutil.copy(ROOT / 'static' / 'app.browser.js', DIST / 'static' / 'forest.js')
+    model_version = hashlib.sha256(payload).hexdigest()[:12]
+    runtime = (ROOT / 'static' / 'app.browser.js').read_text().replace(
+        "'/static/water.forest'", f"'/static/water.forest?v={model_version}'"
+    )
+    (DIST / 'static' / 'forest.js').write_text(runtime, encoding='utf-8')
+    # A fresh page must load matching UI, runtime and model assets after deployment.
+    for asset in ('style.css', 'forest.js', 'app.js'):
+        version = hashlib.sha256((DIST / 'static' / asset).read_bytes()).hexdigest()[:12]
+        html = html.replace(f'/static/{asset}"', f'/static/{asset}?v={version}"')
+    (DIST / 'index.html').write_text(html, encoding='utf-8')
     shutil.copy(ROOT / 'cloudflare' / '_headers', DIST / '_headers')
 
     parity = f', parity {agreement:.2%}' if agreement is not None else ', parity skipped (no data CSV)'
