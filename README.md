@@ -1,72 +1,92 @@
-# Water Potability Prediction System
+---
+title: Aqua · Water Potability System
+emoji: 💧
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+---
 
-A machine learning project that predicts whether water is **potable** (safe to drink) or **not potable** based on chemical water quality metrics.
+# Aqua · Water Potability System
 
-## Overview
+A responsive water quality research workspace with a Flask prediction API and a reproducible scikit-learn training pipeline. The original `Water.ipynb` and `ML_Project.pdf` are retained as historical analysis.
 
-This project trains and compares multiple classification models on a water quality dataset to determine the best approach for potability prediction. The complete pipeline — from exploratory data analysis (EDA) to model evaluation — is implemented in a Jupyter Notebook.
+## Run locally
 
-## Dataset
+Requires Python 3.11.
 
-The dataset contains **3276 samples** with **9 chemical features**:
-
-| Feature | Description |
-|---|---|
-| pH | pH level of water |
-| Hardness | Water hardness (mg/L) |
-| Solids | Total dissolved solids (ppm) |
-| Chloramines | Chloramine concentration (ppm) |
-| Sulfate | Sulfate concentration (mg/L) |
-| Conductivity | Electrical conductivity (µS/cm) |
-| Organic_carbon | Organic carbon content (mg/L) |
-| Trihalomethanes | Trihalomethane concentration (µg/L) |
-| Turbidity | Water turbidity (NTU) |
-
-**Target:** `Potability` — 0 (Not Potable) or 1 (Potable)
-
-**Class Distribution:** 1998 non-potable (61%) | 1278 potable (39%)
-
-## Models & Performance
-
-| Model | Accuracy |
-|---|---|
-| Logistic Regression | 60.53% |
-| K-Nearest Neighbors (k=3) | 51.98% |
-| Support Vector Machine | 60.53% |
-| Decision Tree | 59.72% |
-| **Random Forest (500 estimators)** | **66.02%** |
-
-The **Random Forest classifier** achieves the highest accuracy at ~66%.
-
-## Pipeline
-
-1. **Data Loading & EDA** — Initial exploration, statistics, missing value detection
-2. **Data Cleaning** — Missing values filled with column means
-3. **Visualization** — KDE plots, histograms, box plots, class distribution charts
-4. **Train/Test Split** — 70/30 split using `train_test_split`
-5. **Model Training** — 5 classifiers from scikit-learn
-6. **Evaluation** — Accuracy scores and confusion matrices
-
-## Tech Stack
-
-- Python 3.11
-- pandas, numpy (data manipulation)
-- matplotlib, seaborn, plotly (visualization)
-- scikit-learn (ML models)
-
-## Usage
-
-Open `Water.ipynb` in Jupyter Notebook or JupyterLab and run all cells. The notebook handles the entire workflow end-to-end.
-
-## Project Structure
-
-```
-Water_Potability_System/
-├── Water.ipynb          # Main analysis notebook
-├── ML_Project.pdf       # Project report (29 pages)
-└── README.md            # This file
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
 ```
 
-## Results
+Open http://localhost:8000. The interface works without a model and explicitly displays **Training required**. Predictions return HTTP 503 until a trained artifact is installed; example values never produce simulated predictions.
 
-The Random Forest model performs best with 66% accuracy. The dataset exhibits class imbalance, which could be addressed in future iterations with resampling techniques.
+## Train a model
+
+A trained model (`models/water.joblib`, compressed, ~8 MB) is **included** in this repository. The dataset is **not** included. To retrain, supply your original, authorized `water_potability.csv` in `data/`, with these columns:
+
+`ph, Hardness, Solids, Chloramines, Sulfate, Conductivity, Organic_carbon, Trihalomethanes, Turbidity, Potability`
+
+```sh
+python train.py data/water_potability.csv
+```
+
+Training writes `models/water.joblib` and `models/water.metrics.json`. The pipeline uses a deterministic, stratified 70/30 split, median imputation fitted only on training data, and a class-weighted random forest. Metrics include accuracy, balanced accuracy, a majority-class baseline, per-class precision/recall, and a confusion matrix. Review these before using the model. Restart the server after replacing the model. Train and serve with the same dependency versions; retain the training environment's exact resolved versions with your release artifact.
+
+The included model's verified holdout metrics are recorded in `models/water.metrics.json`: accuracy 65.9%, balanced accuracy 59.1%, majority-class baseline 61.0%. The original notebook reports approximately 66% accuracy as a historical figure. No improved performance is claimed; review the confusion matrix before relying on the model, especially for the potable class.
+
+## Deployment
+
+```sh
+# Train first if prediction functionality is required.
+docker build -t aqua .
+docker run --rm -p 8000:8000 aqua
+```
+
+The image includes `models/water.joblib` if trained before building. Alternatively mount a trusted model artifact and set `MODEL_PATH` to its container path. Never load a joblib file from an untrusted source: loading can execute code.
+
+### Hugging Face Spaces (free)
+
+The YAML block at the top of this README declares `sdk: docker` and `app_port: 8000`, so the same repository can be pushed directly to a Docker Space:
+
+```sh
+git remote add space https://huggingface.co/spaces/<your-username>/<your-space-name>
+git push space main
+```
+
+Create the Space first at https://huggingface.co/new-space with the Docker SDK (or push to an existing Space). After the build finishes, verify `https://<space-url>/health` reports `"model_ready": true`. The included `models/water.joblib` stays under HF's 10 MB git limit, so Git LFS is not required, and `requirements.txt` pins the exact training/serving versions.
+
+The container runs Gunicorn as a non-root user, binding to `PORT` (default 8000). Configure your hosting platform to build the Dockerfile, expose that port, and serve HTTPS. No credentials or external services are required. `/health` returns process health and a separate `model_ready` flag; deployments requiring prediction must check that flag. The app does not store submitted measurements.
+
+For a non-container deployment:
+
+```sh
+gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 60 app:app
+```
+
+## API
+
+`POST /api/predict` accepts exactly nine numeric measurements as JSON, using the dataset column names above (without Potability). Validation rejects missing/extra fields, booleans, non-finite values, and values outside the application input bounds. These bounds are not safety standards. Returns `prediction` (0 or 1), `label`, and a research-use notice. Invalid input returns 400; a missing model returns 503.
+
+## Checks
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Tests cover page/assets, prediction feature order, malformed measurements, unavailable models, request size limits, and security headers. Tests use a stub classifier; they do not establish model quality.
+
+## Issues addressed and remaining limits
+
+- Added the previously missing application, dependency manifest, and container deployment setup.
+- Added responsive, labeled inputs, keyboard focus states, visible units, loading/error states, and an accessible result announcement.
+- Fixed full-dataset imputation leakage in the new training path and made the split stratified and reproducible.
+- Added strict server validation, request limits, security headers, and production serving.
+- The original notebook still contains historical code with global imputation, duplicate splits, unscaled distance-based classifiers, suppressed warnings, and deprecated plotting APIs. Use `train.py` for the deployable model rather than exporting the notebook's classifier.
+- Dataset provenance, independent validation, model calibration, and deployment on a hosting account remain release-owner tasks. No live deployment has been performed.
+
+This project is for research and education. A prediction cannot certify drinking-water safety; use accredited laboratory testing and qualified guidance for real-world decisions.

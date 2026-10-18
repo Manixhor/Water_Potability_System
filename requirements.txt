@@ -1,0 +1,21 @@
+# Exact versions used for training and verified for serving (Python 3.11).
+# Train and serve with the same dependency versions; refresh these pins whenever you retrain.
+blinker==1.9.0
+click==8.5.0
+Flask==3.1.3
+gunicorn==23.0.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+joblib==1.5.3
+MarkupSafe==3.0.4
+numpy==2.4.6
+packaging==26.3
+pandas==2.3.3
+python-dateutil==2.9.0.post0
+pytz==2026.5
+scikit-learn==1.6.1
+scipy==1.17.1
+six==1.17.0
+threadpoolctl==3.7.0
+tzdata==2026.5
+Werkzeug==3.1.9
