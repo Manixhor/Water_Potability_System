@@ -81,6 +81,14 @@ document.querySelector('#example').addEventListener('click', () => {
   body.textContent = 'These illustrative measurements are for exploring the interface. They are not a verified laboratory sample.';
   tag.textContent = 'EXAMPLE SAMPLE';
 });
+document.querySelectorAll('.sample').forEach(sample => {
+  sample.addEventListener('click', () => {
+    const values = JSON.parse(sample.dataset.sample);
+    form.querySelectorAll('input').forEach(input => { if (input.id in values) input.value = values[input.id]; });
+    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+    else form.dispatchEvent(new Event('submit', { cancelable: true }));
+  });
+});
 form.addEventListener('reset', () => {
   title.textContent = 'Ready for a fresh sample.';
   body.textContent = 'Enter all nine measurements to begin an assessment.';

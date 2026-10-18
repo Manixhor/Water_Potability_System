@@ -8,7 +8,7 @@ import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 
-from features import FEATURES
+from features import FEATURES, SAMPLES
 
 
 def create_app(model=None):
@@ -28,7 +28,7 @@ def create_app(model=None):
 
     @app.get('/')
     def index():
-        return render_template('index.html', features=FEATURES)
+        return render_template('index.html', features=FEATURES, samples=SAMPLES)
 
     @app.get('/health')
     def health():

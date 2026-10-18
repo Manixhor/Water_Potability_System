@@ -18,10 +18,22 @@ class ApiTests(unittest.TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Know your water', response.data)
+        self.assertIn(b'data-sample', response.data)
+        self.assertIn(b'SAMPLE VALUES', response.data)
         for asset in ('style.css', 'app.js'):
             with self.client.get('/static/' + asset) as asset_response:
                 self.assertEqual(asset_response.status_code, 200)
         self.assertIn('Content-Security-Policy', response.headers)
+
+    def test_sample_presets_match_feature_contract(self):
+        from features import SAMPLES
+        self.assertTrue(SAMPLES)
+        for sample in SAMPLES:
+            self.assertTrue(sample['name'] and sample['note'])
+            self.assertEqual(set(sample['measurements']), set(FEATURES))
+            for key, (_, _, low, high, _) in FEATURES.items():
+                self.assertLessEqual(low, sample['measurements'][key])
+                self.assertLessEqual(sample['measurements'][key], high)
 
     def test_prediction_and_order(self):
         response = self.client.post('/api/predict', json=self.sample)
