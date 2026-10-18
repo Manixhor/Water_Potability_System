@@ -52,7 +52,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.json['prediction'], 1)
 
     def test_invalid_values(self):
-        for value in (-1, 15, True, '7', None, float('nan'), float('inf')):
+        for value in (-1, 15, True, '7', None, float('nan'), float('inf'), 10**500):
             self.assertEqual(self.client.post('/api/predict', json={**self.sample, 'ph': value}).status_code, 400)
         self.assertEqual(self.client.post('/api/predict', json={}).status_code, 400)
         self.assertEqual(self.client.post('/api/predict', json={**self.sample, 'extra': 1}).status_code, 400)
@@ -64,6 +64,22 @@ class ApiTests(unittest.TestCase):
             client = create_app().test_client()
         self.assertFalse(client.get('/health').json['model_ready'])
         self.assertEqual(client.post('/api/predict', json=self.sample).status_code, 503)
+
+    def test_prediction_failure_returns_json(self):
+        from unittest.mock import Mock
+        model = Mock()
+        model.predict.side_effect = RuntimeError('broken model')
+        with self.assertLogs('app', level='ERROR'):
+            response = create_app(model).test_client().post('/api/predict', json=self.sample)
+        self.assertEqual(response.status_code, 503)
+        self.assertIn('error', response.json)
+
+    def test_default_model_path_is_independent_of_working_directory(self):
+        from unittest.mock import patch
+        import os
+        with patch.dict(os.environ, {}, clear=True), patch('app.Path.is_file', return_value=True), patch('app.joblib.load') as load:
+            create_app()
+        self.assertTrue(load.call_args.args[0].is_absolute())
 
     def test_body_limit(self):
         self.assertEqual(self.client.post('/api/predict', data='x'*20000, content_type='application/json').status_code, 413)

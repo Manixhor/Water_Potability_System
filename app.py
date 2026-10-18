@@ -14,9 +14,12 @@ from features import FEATURES, SAMPLES
 def create_app(model=None):
     app = Flask(__name__)
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024
-    model_path = Path(os.environ.get('MODEL_PATH', 'models/water.joblib'))
+    model_path = Path(os.environ.get('MODEL_PATH', str(Path(__file__).resolve().parent / 'models' / 'water.joblib')))
     if model is None and model_path.is_file():
-        model = joblib.load(model_path)
+        try:
+            model = joblib.load(model_path)
+        except Exception:
+            app.logger.exception('Could not load the trained model')
 
     @app.after_request
     def headers(response):
@@ -41,12 +44,18 @@ def create_app(model=None):
             return jsonify(error='Provide exactly the nine required measurements.'), 400
         for key, (_, _, low, high, _) in FEATURES.items():
             value = values[key]
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not low <= value <= high or not math.isfinite(value):
                 return jsonify(error=f'{FEATURES[key][0]} must be a finite number between {low} and {high}.'), 400
         if model is None:
             return jsonify(error='No trained model is installed. Complete model training before running an assessment.'), 503
         frame = pd.DataFrame([values], columns=list(FEATURES))
-        prediction = int(model.predict(frame)[0])
+        try:
+            prediction = int(model.predict(frame)[0])
+            if prediction not in (0, 1):
+                raise ValueError('Unexpected model class')
+        except Exception:
+            app.logger.exception('Model prediction failed')
+            return jsonify(error='The model could not assess this sample. Please retry.'), 503
         return jsonify(prediction=prediction, label='Predicted potable' if prediction else 'Predicted non-potable', notice='Research prediction only. This result does not certify that water is safe to drink.')
 
     @app.errorhandler(HTTPException)

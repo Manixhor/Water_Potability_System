@@ -127,3 +127,17 @@ Tests cover page/assets, prediction feature order, malformed measurements, unava
 - Dataset provenance, independent validation, and model calibration remain release-owner tasks. The application is deployed for free on Cloudflare Workers (always on, no Docker) at https://waterpotabilitysystem.promptcraft-worker.workers.dev, verified via `/health`, production header checks, and browser parity tests against the Flask API.
 
 This project is for research and education. A prediction cannot certify drinking-water safety; use accredited laboratory testing and qualified guidance for real-world decisions.
+
+
+### Interface verification
+
+Flask and the static build share `static/app.js`. The static build additionally loads `static/forest.js`, generated from `static/app.browser.js`, to run the same trained forest locally. Model downloads time out after 30 seconds and can be retried. Editing or clearing a sample invalidates any pending result.
+
+Build before testing the browser model:
+
+```sh
+.venv/bin/python scripts/build_cloudflare.py
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+The model test runs the actual JavaScript predictor against every dataset row and compares it with scikit-learn (requires Node.js). Optional UI checks use Playwright: start Flask on port 8086, then run `node tests/browser.cjs` with Playwright available. `WATER_TEST_URL` and `PLAYWRIGHT_EXECUTABLE_PATH` can override the server and browser paths. The checks cover both Flask and static assets, five viewport widths, required fields, range validation, all presets, reset during an active request, and model-download retry.

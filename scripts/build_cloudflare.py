@@ -101,6 +101,7 @@ def forest_predict(payload, x_raw):
     missing = np.isnan(x)
     if missing.any():
         x[missing] = np.take(fills, np.nonzero(missing)[1])
+    x = x.astype(np.float32)
     scores = np.zeros((x.shape[0], 2))
     for start in trees[:, 0]:
         current = np.full(x.shape[0], int(start), dtype=np.int64)
@@ -139,7 +140,11 @@ def main():
     response = create_app().test_client().get('/')
     if response.status_code != 200:
         sys.exit(f'Rendering templates/index.html failed with {response.status_code}')
-    (DIST / 'index.html').write_bytes(response.data)
+    html = response.data.decode('utf-8').replace(
+        '<script defer src="/static/app.js"></script>',
+        '<script defer src="/static/forest.js"></script><script defer src="/static/app.js"></script>'
+    )
+    (DIST / 'index.html').write_text(html, encoding='utf-8')
 
     # 2. Export the pipeline and verify it predicts like the served model.
     model = joblib.load(model_path)
@@ -168,7 +173,8 @@ def main():
 
     # 3. Front-end assets: browser runtime served as /static/app.js.
     shutil.copy(ROOT / 'static' / 'style.css', DIST / 'static' / 'style.css')
-    shutil.copy(ROOT / 'static' / 'app.browser.js', DIST / 'static' / 'app.js')
+    shutil.copy(ROOT / 'static' / 'app.js', DIST / 'static' / 'app.js')
+    shutil.copy(ROOT / 'static' / 'app.browser.js', DIST / 'static' / 'forest.js')
     shutil.copy(ROOT / 'cloudflare' / '_headers', DIST / '_headers')
 
     parity = f', parity {agreement:.2%}' if agreement is not None else ', parity skipped (no data CSV)'
