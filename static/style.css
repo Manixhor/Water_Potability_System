@@ -57,3 +57,21 @@ aside .sample-grid { grid-template-columns: minmax(0, 1fr); }
 aside .sample-values { font-size: 11px; }
 @media(max-width:900px) { aside { display: block; } .result { min-height: 260px; } }
 @media(max-width:600px) { .result { padding: 20px; } aside .samples { padding: 20px; } }
+
+/* Gentle feedback without changing the size or position of the controls. */
+.primary { min-width: 158px; touch-action: manipulation; transition: background-color .18s ease, box-shadow .18s ease, transform .12s ease; }
+.primary:hover:not(:disabled) { background: #125f50; box-shadow: 0 3px 10px #153d3b1a; }
+.primary:active:not(:disabled) { transform: translateY(1px); }
+.primary:disabled { opacity: .8; }
+.sample { touch-action: manipulation; transition: background-color .18s ease, border-color .18s ease, opacity .18s ease; }
+.sample:disabled { cursor: wait; opacity: .7; }
+.result { transition: background-color .22s ease, border-color .22s ease; }
+.result #result-title { min-height: 2.2em; }
+.result #result-body { min-height: 7.2em; }
+.result[aria-busy="true"] .result-icon { animation: assess-spin 1.2s linear infinite; }
+@keyframes assess-spin { to { transform: rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) {
+ .primary, .sample, .result { transition: none; }
+ .primary:active:not(:disabled) { transform: none; }
+ .result[aria-busy="true"] .result-icon { animation: none; }
+}

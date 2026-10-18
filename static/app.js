@@ -18,9 +18,11 @@ function showResult(heading, message, badge) {
   resultPanel.dataset.state = badge === 'RESEARCH PREDICTION' ? 'complete' : badge === 'ACTION REQUIRED' ? 'error' : 'pending';
 }
 function revealResult() {
-  // Scroll after painting the new content; manual and preset submissions share this path.
-  title.focus({ preventScroll: true });
-  resultPanel.scrollIntoView({ behavior: 'auto', block: 'start' });
+  const heading = title.getBoundingClientRect();
+  // Leave the page still when the result and its message are already in view.
+  if (heading.top >= 16 && heading.bottom + 80 <= window.innerHeight) return;
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  resultPanel.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'nearest' });
 }
 function submitSample() {
   if (typeof form.requestSubmit === 'function') form.requestSubmit();
@@ -102,13 +104,13 @@ form.addEventListener('submit', async event => {
     modelStatus.textContent = 'Model ready';
     if (submittedRevision !== revision) return;
     showResult(data.label, data.notice, 'RESEARCH PREDICTION');
-    revealResult();
+    title.focus({ preventScroll: true });
   } catch (error) {
     if (submittedRevision !== revision) return;
     const message = (error.name === 'TimeoutError' || error.name === 'AbortError') ? 'The assessment timed out. Check your connection and retry.' : error.message;
     showResult('Assessment unavailable', message || 'Please try again.', 'ACTION REQUIRED');
     modelStatus.textContent = 'Assessment failed — retry';
-    revealResult();
+    title.focus({ preventScroll: true });
   } finally {
     resultPanel.setAttribute('aria-busy', 'false');
     busy = false;

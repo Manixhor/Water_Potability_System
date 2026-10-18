@@ -2,11 +2,12 @@
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-function environment() {
+function environment({ visible = false, reduced = false } = {}) {
   const elements = {};
   function element(id) { return elements[id] ||= { textContent: '', hidden: true, dataset: {}, listeners: {}, disabled: false,
     addEventListener(type, fn) { this.listeners[type] = fn; }, setAttribute() {},
-    focus() { this.focused = true; }, scrollIntoView() { this.revealed = true; } }; }
+    focus() { this.focused = true; }, scrollIntoView(options) { this.revealed = true; this.scrolls = (this.scrolls || 0) + 1; this.scrollOptions = options; },
+    getBoundingClientRect() { return visible ? {top:100,bottom:140} : {top:1000,bottom:1040}; } }; }
   const inputs = ['ph','Hardness'].map(name => ({ ...element(name), name, id: name, min: '0', max: '1000', valueAsNumber: 7, dataset: {example:'7'} }));
   const form = element('#sample-form');
   form.querySelectorAll = () => inputs;
@@ -15,7 +16,7 @@ function environment() {
   const sample = element('preset'); sample.dataset.sample = '{"ph":7,"Hardness":100}';
   const context = vm.createContext({ document: {
     querySelector: element, querySelectorAll: () => [sample]
-  }, window: { aquaModel: { ready: async () => true, predict: async () => ({label:'Predicted potable',notice:'Research only'}) } },
+  }, window: { innerHeight: 812, matchMedia: () => ({matches: reduced}), aquaModel: { ready: async () => true, predict: async () => ({label:'Predicted potable',notice:'Research only'}) } },
     Event, AbortController, setTimeout, clearTimeout });
   vm.runInContext(fs.readFileSync('static/app.js','utf8'), context);
   return {elements, form, sample, inputs, model:context.window.aquaModel};
@@ -26,6 +27,14 @@ async function main() {
   assert.equal(e.elements['#result-title'].textContent,'Predicted potable');
   assert(e.elements['.result'].revealed, 'Manual assessments must reveal the result');
   assert(e.elements['#result-title'].focused);
+  assert.equal(e.elements['.result'].scrolls, 1, 'Do not scroll again when the answer arrives');
+  assert.equal(e.elements['.result'].scrollOptions.behavior, 'smooth');
+  e = environment({visible: true});
+  await e.form.listeners.submit(new Event('submit', {cancelable:true}));
+  assert.equal(e.elements['.result'].scrolls || 0, 0, 'Keep the viewport still when the result is visible');
+  e = environment({reduced: true});
+  await e.form.listeners.submit(new Event('submit', {cancelable:true}));
+  assert.equal(e.elements['.result'].scrollOptions.behavior, 'auto');
   e = environment();
   // Legacy browsers without requestSubmit or AbortSignal.timeout must still assess presets.
   e.sample.listeners.click();
