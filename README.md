@@ -49,18 +49,22 @@ docker run --rm -p 8000:8000 aqua
 
 The image includes `models/water.joblib` if trained before building. Alternatively mount a trusted model artifact and set `MODEL_PATH` to its container path. Never load a joblib file from an untrusted source: loading can execute code.
 
-### Hugging Face Spaces (free)
+### Hugging Face Spaces note
 
-The YAML block at the top of this README declares `sdk: docker` and `app_port: 8000`, so the same repository can be pushed directly to a Docker Space:
+Hugging Face now requires a paid PRO plan to create Docker Spaces (only static HTML Spaces are free). The YAML block at the top of this README (`sdk: docker`, `app_port: 8000`) is retained so the repository can be pushed to a Docker Space on a PRO account later; the model stays under HF's 10 MB git limit, so Git LFS is not required.
 
-```sh
-git remote add space https://huggingface.co/spaces/<your-username>/<your-space-name>
-git push space main
-```
+### Render (free)
 
-Create the Space first at https://huggingface.co/new-space with the Docker SDK (or push to an existing Space). After the build finishes, verify `https://<space-url>/health` reports `"model_ready": true`. The included `models/water.joblib` stays under HF's 10 MB git limit, so Git LFS is not required, and `requirements.txt` pins the exact training/serving versions.
+Render's free web service plan (512 MB RAM) builds this Dockerfile directly:
 
-The container runs Gunicorn as a non-root user, binding to `PORT` (default 8000). Configure your hosting platform to build the Dockerfile, expose that port, and serve HTTPS. No credentials or external services are required. `/health` returns process health and a separate `model_ready` flag; deployments requiring prediction must check that flag. The app does not store submitted measurements.
+1. Sign up at https://render.com with GitHub and create a **Web Service** from this repository.
+2. Choose runtime **Docker** (auto-detects the Dockerfile) and instance **Free**.
+3. Set the environment variable `WEB_CONCURRENCY=1` — the model needs ~235 MB per Gunicorn worker, so a single worker is required to fit the 512 MB free instance. `PORT` is injected by Render automatically.
+4. Deploy, then verify `https://<service-name>.onrender.com/health` reports `"model_ready": true`.
+
+Free instances spin down after 15 minutes without traffic; the first request after idle takes ~30-60 seconds to wake.
+
+The container runs Gunicorn as a non-root user, binding to `PORT` (default 8000) with a worker count set by `WEB_CONCURRENCY` (default 2; use 1 on 512 MB free instances). Configure your hosting platform to build the Dockerfile, expose that port, and serve HTTPS. No credentials or external services are required. `/health` returns process health and a separate `model_ready` flag; deployments requiring prediction must check that flag. The app does not store submitted measurements.
 
 For a non-container deployment:
 
